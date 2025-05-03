@@ -1,0 +1,21 @@
+/* App.css */
+/* This file is intentionally kept minimal as we're using Tailwind CSS for most styling */
+
+/* Any global custom styles that can't be achieved with Tailwind can go here */
+.App {
+  text-align: center;
+}
+
+/* Animation for loading spinner if needed */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
