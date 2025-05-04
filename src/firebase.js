@@ -5,18 +5,16 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 
-// Your Firebase configuration 
-// Replace with your own Firebase config after creating a project at https://console.firebase.google.com/
+// Firebase configuration using environment variables
 const firebaseConfig = {
-    apiKey: "AIzaSyDnQ95DDjZ507Le__HLK4UkbQWnRJ5MND4",
-    authDomain: "booking-bridge-link.firebaseapp.com",
-    projectId: "booking-bridge-link",
-    storageBucket: "booking-bridge-link.firebasestorage.app",
-    messagingSenderId: "462398293033",
-    appId: "1:462398293033:web:a67f76916a35ef4a688838",
-    measurementId: "G-WFKWKG9Q3G"
-  };
-  
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
