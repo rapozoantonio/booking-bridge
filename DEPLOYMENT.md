@@ -29,7 +29,7 @@
    firebase init hosting
    ```
    - Select your project
-   - Set public directory to: `dist`
+   - Set public directory to: `build`
    - Configure as single-page app: `Yes`
    - Don't overwrite index.html: `No`
 
@@ -39,28 +39,51 @@
    ```bash
    npm run build
    ```
-   This creates an optimized production build in the `dist` folder.
+   This creates an optimized production build in the `build` folder with:
+   - Main bundle: ~195 KB
+   - Firebase chunk: ~515 KB (cached separately)
+   - React vendor: ~45 KB (cached separately)
 
-2. **Deploy to Firebase Hosting**:
+2. **Deploy Firestore rules and indexes** (first time or when changed):
+   ```bash
+   npm run deploy:firestore
+   ```
+   Or manually:
+   ```bash
+   firebase deploy --only firestore:rules,firestore:indexes
+   ```
+
+3. **Deploy to Firebase Hosting**:
    ```bash
    firebase deploy --only hosting
    ```
 
-3. **Your app will be live at**:
+4. **Your app will be live at**:
    ```
    https://your-project-id.web.app
    ```
 
 ### Quick Deploy Script
 
-Add this to your `package.json` scripts:
+The `package.json` already includes deployment scripts:
 ```json
-"deploy": "npm run build && firebase deploy --only hosting"
+{
+  "scripts": {
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy:firestore": "firebase deploy --only firestore:rules,firestore:indexes"
+  }
+}
 ```
 
-Then simply run:
+Simply run:
 ```bash
 npm run deploy
+```
+
+Or deploy everything including Firestore:
+```bash
+npm run build
+firebase deploy
 ```
 
 ## Environment Variables
@@ -81,27 +104,18 @@ VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 
 ## Firestore Security Rules
 
-Don't forget to set up security rules in Firebase Console:
+Security rules are defined in `firestore.rules` and include:
+- User data protection (owner-only access)
+- Place visibility controls (active places are public)
+- Analytics subcollection (write for tracking, read for owner only)
+- Email subscribers subcollection
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    match /places/{placeId} {
-      allow read: if resource.data.isActive == true ||
-                     (request.auth != null && request.auth.uid == resource.data.userId);
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null &&
-                               request.auth.uid == resource.data.userId;
-    }
-  }
-}
+Deploy with:
+```bash
+npm run deploy:firestore
 ```
+
+The rules file is located at `firestore.rules` in the project root.
 
 ## Continuous Deployment (Optional)
 
@@ -141,7 +155,8 @@ jobs:
 - **Firebase deploy fails**: Verify you're logged in (`firebase login`)
 - **Environment variables not working**: Rebuild the app after changing `.env`
 - **404 on refresh**: Make sure `firebase.json` has the rewrites configuration
-- **Slow loading**: Check that you're serving from `dist`, not `public`
+- **Slow loading**: Check that you're serving from `build`, not `public` or `dist`
+- **Bundle size warning**: This is expected - Firebase SDK is large but cached separately
 
 ## Custom Domain (Optional)
 
