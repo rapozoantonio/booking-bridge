@@ -95,6 +95,10 @@ code {
   animation: glow 2s ease-in-out infinite;
 }
 
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
+
 /* Stagger Animation Support */
 .stagger-animation > * {
   opacity: 0;
