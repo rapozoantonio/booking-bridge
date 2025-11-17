@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Link as LinkIcon, TrendingUp, Sparkles, Shield, Zap } from 'lucide-react';
+import { MapPin, Link as LinkIcon, TrendingUp, Sparkles, Shield, Zap, ArrowRight } from 'lucide-react';
 
 const LandingPage = () => {
   const features = [
@@ -61,9 +61,9 @@ const LandingPage = () => {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 animate-fade-in-up">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 animate-fade-in-up" style={{ fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.03em' }}>
               One Link for Your
-              <span className="block bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mt-2">
+              <span className="block bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mt-2 animate-glow">
                 Hospitality Business
               </span>
             </h1>
@@ -77,16 +77,17 @@ const LandingPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-fade-in-up animation-delay-400">
               <Link
                 to="/register"
-                className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
               >
-                <span>Get Started Free</span>
-                <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
+                <span className="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
+                <span className="relative flex items-center gap-2">
+                  Get Started Free
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </span>
               </Link>
               <Link
                 to="/login"
-                className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 border border-gray-200"
+                className="group inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-gray-200 hover:border-indigo-300"
               >
                 Sign In
               </Link>
@@ -124,21 +125,26 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger-animation">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group relative bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-indigo-200"
+                className="group relative bg-white/60 backdrop-blur-sm p-8 rounded-3xl shadow-md hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-indigo-300 hover:-translate-y-2 gpu-accelerated"
               >
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white mb-5 group-hover:scale-110 transition-transform duration-300">
-                  {feature.icon}
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-600/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                <div className="relative">
+                  <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl text-white mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg group-hover:shadow-indigo-500/50">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-indigo-600 transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
               </div>
             ))}
           </div>
@@ -157,33 +163,33 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full text-white text-2xl font-bold mb-6 shadow-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 stagger-animation">
+            <div className="text-center group">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full text-white text-2xl font-bold mb-6 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300 group-hover:shadow-indigo-500/50">
                 1
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Create Your Account</h3>
-              <p className="text-gray-600 text-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-indigo-600 transition-colors">Create Your Account</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
                 Sign up for free in seconds. No credit card required.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full text-white text-2xl font-bold mb-6 shadow-lg">
+            <div className="text-center group">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full text-white text-2xl font-bold mb-6 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300 group-hover:shadow-purple-500/50">
                 2
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Add Your Links</h3>
-              <p className="text-gray-600 text-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">Add Your Links</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
                 Add booking platforms, social media, and custom links. Customize colors and style.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full text-white text-2xl font-bold mb-6 shadow-lg">
+            <div className="text-center group">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-pink-500 to-rose-600 rounded-full text-white text-2xl font-bold mb-6 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300 group-hover:shadow-pink-500/50">
                 3
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Share & Grow</h3>
-              <p className="text-gray-600 text-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-pink-600 transition-colors">Share & Grow</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">
                 Share your link and watch your bookings grow. Track performance in real-time.
               </p>
             </div>
@@ -202,12 +208,10 @@ const LandingPage = () => {
           </p>
           <Link
             to="/register"
-            className="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-indigo-600 bg-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+            className="group inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-indigo-600 bg-white rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
           >
             Start For Free
-            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
           <p className="mt-6 text-indigo-200 text-sm">
             Free forever. No credit card required. Open source.
