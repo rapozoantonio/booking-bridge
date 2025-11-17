@@ -12,6 +12,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-loaded Pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -54,50 +55,60 @@ function App() {
   }
 
   return (
-    <ToastProvider>
-      <Router>
-        <Routes>
-          {/* ProfilePage route without Navbar and Footer */}
-          <Route path="/p/:profileId" element={
-            <Suspense fallback={<LoadingFallback />}>
-              <ProfilePage />
-            </Suspense>
-          } />
+    <ErrorBoundary>
+      <ToastProvider>
+        <Router>
+          <Routes>
+            {/* ProfilePage route without Navbar and Footer */}
+            <Route path="/p/:profileId" element={
+              <ErrorBoundary>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ProfilePage />
+                </Suspense>
+              </ErrorBoundary>
+            } />
 
-          {/* All other routes with Navbar and Footer */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={currentUser ? <Navigate to="/dashboard" /> : <LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute user={currentUser}>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/place/new"
-              element={
-                <ProtectedRoute user={currentUser}>
-                  <PlaceEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/place/edit/:placeId"
-              element={
-                <ProtectedRoute user={currentUser}>
-                  <PlaceEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </Router>
-    </ToastProvider>
+            {/* All other routes with Navbar and Footer */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={currentUser ? <Navigate to="/dashboard" /> : <LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute user={currentUser}>
+                    <ErrorBoundary>
+                      <Dashboard />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/place/new"
+                element={
+                  <ProtectedRoute user={currentUser}>
+                    <ErrorBoundary>
+                      <PlaceEditor />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/place/edit/:placeId"
+                element={
+                  <ProtectedRoute user={currentUser}>
+                    <ErrorBoundary>
+                      <PlaceEditor />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </Router>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

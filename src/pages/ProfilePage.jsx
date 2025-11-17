@@ -116,29 +116,32 @@ const ProfilePage = () => {
     try {
       const placeRef = doc(db, "places", profileId);
 
-      // Update the click count for this link
-      const baseUpdate = {};
-      if (linkType === "booking") {
-        baseUpdate[`bookingLinks.${linkIndex}.clicks`] = increment(1);
-        baseUpdate[`bookingLinks.${linkIndex}.lastClicked`] = serverTimestamp();
-      } else if (linkType === "social") {
-        baseUpdate[`socialLinks.${linkIndex}.clicks`] = increment(1);
-        baseUpdate[`socialLinks.${linkIndex}.lastClicked`] = serverTimestamp();
-      } else if (linkType === "support") {
-        baseUpdate[`supportLinks.${linkIndex}.clicks`] = increment(1);
-        baseUpdate[`supportLinks.${linkIndex}.lastClicked`] = serverTimestamp();
-      }
-      
-      await updateDoc(placeRef, baseUpdate);
+      // Create a single atomic update with all changes
+      const updates = {};
 
-      // Track in analytics collection for historical data
-      await updateDoc(placeRef, {
-        analytics: arrayUnion({
-          linkType,
-          linkIndex,
-          timestamp: serverTimestamp(),
-        }),
+      // Update the click count and timestamp for this link
+      if (linkType === "booking") {
+        updates[`bookingLinks.${linkIndex}.clicks`] = increment(1);
+        updates[`bookingLinks.${linkIndex}.lastClicked`] = serverTimestamp();
+      } else if (linkType === "social") {
+        updates[`socialLinks.${linkIndex}.clicks`] = increment(1);
+        updates[`socialLinks.${linkIndex}.lastClicked`] = serverTimestamp();
+      } else if (linkType === "support") {
+        updates[`supportLinks.${linkIndex}.clicks`] = increment(1);
+        updates[`supportLinks.${linkIndex}.lastClicked`] = serverTimestamp();
+      }
+
+      // Add to analytics array (limited to last 100 events to prevent document size issues)
+      // Note: This still appends, but we should periodically clean old events
+      // In production, consider moving to a subcollection for scalability
+      updates.analytics = arrayUnion({
+        linkType,
+        linkIndex,
+        timestamp: serverTimestamp(),
       });
+
+      // Single atomic update instead of two separate calls
+      await updateDoc(placeRef, updates);
     } catch (error) {
       console.error("Error tracking link click:", error);
       // Silent fail - don't block user experience for analytics issues

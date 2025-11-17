@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { UserPlus, AlertCircle } from 'lucide-react';
 
@@ -39,7 +39,7 @@ const Register = () => {
         uid: user.uid,
         name,
         email,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
       });
 
       navigate('/dashboard');
