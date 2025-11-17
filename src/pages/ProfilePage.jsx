@@ -4,23 +4,26 @@ import { doc, getDoc, updateDoc, increment, serverTimestamp } from "firebase/fir
 import { db } from "../firebase";
 import { trackLinkClick as trackLinkClickAnalytics, trackProfileView } from "../utils/analytics";
 import EmailCollectionWidget from "../components/EmailCollectionWidget";
+import { Share2, Copy, Check } from "lucide-react";
 
-// Reusable Button Component
-const LinkButton = ({ onClick, style, icon, iconType, showIcon, children, ariaLabel }) => {
+// Enhanced Button Component with 2025 Effects
+const LinkButton = ({ onClick, style, icon, iconType, showIcon, children, ariaLabel, buttonEffect }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   const renderIcon = () => {
     if (showIcon === false) return null;
-    
+
     if (icon) {
       return <img src={icon} alt="" className="w-5 h-5 mr-3" aria-hidden="true" />;
     }
-    
+
     return (
       <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d={iconType === 'location' 
+          d={iconType === 'location'
             ? "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
             : "M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
           }
@@ -29,20 +32,60 @@ const LinkButton = ({ onClick, style, icon, iconType, showIcon, children, ariaLa
     );
   };
 
+  // Enhanced hover effects based on button style
+  const getEnhancedClassName = () => {
+    const baseClasses = "w-full flex items-center justify-center py-3.5 px-5 font-medium transition-all duration-300 relative overflow-hidden group";
+
+    if (buttonEffect === 'glass') {
+      return `${baseClasses} backdrop-blur-lg hover:backdrop-blur-xl hover:scale-[103%] hover:shadow-2xl`;
+    }
+    if (buttonEffect === 'neumorphic') {
+      return `${baseClasses} hover:scale-[101%]`;
+    }
+    if (buttonEffect === 'gradient') {
+      return `${baseClasses} hover:scale-[103%] hover:shadow-2xl hover:brightness-110`;
+    }
+
+    return `${baseClasses} hover:scale-[103%] hover:shadow-xl`;
+  };
+
+  const enhancedStyle = { ...style };
+
+  // Add glassmorphism effect
+  if (buttonEffect === 'glass') {
+    enhancedStyle.backdropFilter = 'blur(12px) saturate(180%)';
+    enhancedStyle.WebkitBackdropFilter = 'blur(12px) saturate(180%)';
+    enhancedStyle.border = '1px solid rgba(255, 255, 255, 0.2)';
+  }
+
+  // Add neumorphic shadows
+  if (buttonEffect === 'neumorphic') {
+    enhancedStyle.boxShadow = isHovered
+      ? 'inset 8px 8px 16px rgba(163, 177, 198, 0.6), inset -8px -8px 16px rgba(255, 255, 255, 0.5)'
+      : '8px 8px 16px rgba(163, 177, 198, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.5)';
+  }
+
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center justify-center py-3 px-4 font-medium transition-transform hover:scale-[102.5%] shadow-sm"
-      style={style}
+      className={getEnhancedClassName()}
+      style={enhancedStyle}
       aria-label={ariaLabel}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {renderIcon()}
-      {children}
+      {/* Ripple effect overlay */}
+      <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
+
+      <span className="relative flex items-center">
+        {renderIcon()}
+        {children}
+      </span>
     </button>
   );
 };
 
-// Social Icon Component
+// Enhanced Social Icon Component
 const SocialIcon = ({ link, color, ariaLabel }) => (
   <a
     onClick={(e) => {
@@ -51,14 +94,18 @@ const SocialIcon = ({ link, color, ariaLabel }) => (
     }}
     href={link.url}
     title={link.displayName || link.platform}
-    className="p-2 transition-transform hover:scale-[107.5%]"
+    className="p-3 transition-all duration-300 hover:scale-[115%] hover:-translate-y-1 rounded-full"
+    style={{
+      background: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(8px)',
+    }}
     aria-label={ariaLabel}
   >
     {link.showIcon !== false && link.icon ? (
-      <img src={link.icon} alt="" className="w-7 h-7" aria-hidden="true" />
+      <img src={link.icon} alt="" className="w-6 h-6" aria-hidden="true" />
     ) : (
       <svg
-        className="w-7 h-7"
+        className="w-6 h-6"
         viewBox="0 0 24 24"
         style={{ color }}
         fill="currentColor"
@@ -68,11 +115,85 @@ const SocialIcon = ({ link, color, ariaLabel }) => (
       </svg>
     )}
     {link.showIcon === false && (
-      <span className="block text-center mt-1" style={{ color }}>
+      <span className="block text-center mt-1 text-sm font-medium" style={{ color }}>
         {link.displayName || link.platform}
       </span>
     )}
   </a>
+);
+
+// Share Button Component
+const ShareButton = ({ profileId, placeName }) => {
+  const [copied, setCopied] = useState(false);
+  const shareUrl = window.location.href;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: placeName,
+          text: `Check out ${placeName} on Booking Bridge`,
+          url: shareUrl,
+        });
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      }
+    } else {
+      handleCopy();
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  };
+
+  return (
+    <div className="flex gap-2 justify-center mb-6">
+      <button
+        onClick={handleShare}
+        className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all duration-300 text-sm font-medium border border-white/20 hover:scale-105"
+        aria-label="Share profile"
+      >
+        <Share2 className="w-4 h-4" />
+        Share
+      </button>
+      <button
+        onClick={handleCopy}
+        className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all duration-300 text-sm font-medium border border-white/20 hover:scale-105"
+        aria-label="Copy link"
+      >
+        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+        {copied ? 'Copied!' : 'Copy'}
+      </button>
+    </div>
+  );
+};
+
+// Skeleton Loader Component
+const SkeletonLoader = () => (
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+    <div className="max-w-lg w-full mx-auto px-4 py-8 space-y-6 animate-pulse">
+      {/* Avatar skeleton */}
+      <div className="flex flex-col items-center mb-6">
+        <div className="w-24 h-24 rounded-full bg-gray-300 mb-4"></div>
+        <div className="h-8 w-48 bg-gray-300 rounded mb-2"></div>
+        <div className="h-4 w-64 bg-gray-300 rounded"></div>
+      </div>
+
+      {/* Link skeletons */}
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="h-14 bg-gray-300 rounded-xl"></div>
+      ))}
+    </div>
+  </div>
 );
 
 const ProfilePage = () => {
@@ -224,13 +345,9 @@ const ProfilePage = () => {
     return place?.sectionLabels?.[sectionType] || labels[place?.placeType] || labels.default;
   };
 
-  // Loading state
+  // Loading state - Use modern skeleton loader
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-pulse text-gray-500">Loading place information...</div>
-      </div>
-    );
+    return <SkeletonLoader />;
   }
 
   // Error state
@@ -261,7 +378,59 @@ const ProfilePage = () => {
   // Styles
   const backgroundColor = place.backgroundColor || "#FFFFFF";
   const fontColor = place.fontColor || "#000000";
-  const systemFontStack = `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`;
+  const modernFontStack = `'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;
+  const buttonEffect = place.buttonEffect || 'solid';
+
+  // Background pattern generator
+  const getBackgroundStyle = () => {
+    const pattern = place.backgroundPattern;
+
+    if (!pattern || pattern === 'none') {
+      return { background: backgroundColor };
+    }
+
+    if (pattern === 'gradient') {
+      return {
+        background: backgroundColor.includes('gradient') ? backgroundColor : `linear-gradient(135deg, ${backgroundColor} 0%, ${place.color || '#3B82F6'} 100%)`
+      };
+    }
+
+    if (pattern === 'mesh') {
+      return {
+        background: 'radial-gradient(at 40% 20%, hsla(28,100%,74%,0.3) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(189,100%,56%,0.3) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(355,100%,93%,0.3) 0px, transparent 50%), radial-gradient(at 80% 50%, hsla(340,100%,76%,0.3) 0px, transparent 50%)',
+        backgroundColor
+      };
+    }
+
+    if (pattern === 'stars') {
+      return {
+        background: backgroundColor,
+        backgroundImage: `radial-gradient(2px 2px at 20px 30px, white, transparent),
+                          radial-gradient(2px 2px at 60px 70px, white, transparent),
+                          radial-gradient(1px 1px at 50px 50px, white, transparent),
+                          radial-gradient(1px 1px at 130px 80px, white, transparent),
+                          radial-gradient(2px 2px at 90px 10px, white, transparent)`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '200px 200px'
+      };
+    }
+
+    if (pattern === 'subtle-grid') {
+      return {
+        background: backgroundColor,
+        backgroundImage: `linear-gradient(${fontColor}11 1px, transparent 1px), linear-gradient(90deg, ${fontColor}11 1px, transparent 1px)`,
+        backgroundSize: '20px 20px'
+      };
+    }
+
+    if (pattern === 'aurora') {
+      return {
+        background: backgroundColor.includes('gradient') ? backgroundColor : `linear-gradient(135deg, ${backgroundColor} 0%, ${place.color || '#3B82F6'} 100%)`
+      };
+    }
+
+    return { background: backgroundColor };
+  };
 
   // Helper function to check if a link is currently scheduled
   const isLinkScheduled = (link) => {
@@ -302,6 +471,7 @@ const ProfilePage = () => {
             icon={null}
             iconType="location"
             showIcon={true}
+            buttonEffect={buttonEffect}
             ariaLabel={`View location on map: ${place.location}`}
           >
             {place.location}
@@ -334,6 +504,7 @@ const ProfilePage = () => {
               style={getLinkStyle("booking")}
               icon={link.icon}
               showIcon={link.showIcon}
+              buttonEffect={buttonEffect}
               ariaLabel={`Book with ${link.displayName || link.platform}`}
             >
               {link.displayName || link.platform}
@@ -360,6 +531,7 @@ const ProfilePage = () => {
               style={getLinkStyle("support")}
               icon={link.icon}
               showIcon={link.showIcon}
+              buttonEffect={buttonEffect}
               ariaLabel={`Support: ${link.displayName || link.platform}`}
             >
               {link.displayName || link.platform}
@@ -423,25 +595,91 @@ const ProfilePage = () => {
   }
 
   return (
-    <div style={{ backgroundColor, color: fontColor, fontFamily: systemFontStack }} className="min-h-screen">
-      <div className="max-w-lg mx-auto px-4 py-8">
-        {/* Profile Header */}
-        <div className="flex flex-col items-center mb-6">
-          <h1 className="text-3xl font-bold text-center" style={{ color: fontColor }}>{place.name}</h1>
-          {place.bio && <p className="text-center mt-4 max-w-md" style={{ color: fontColor }}>{place.bio}</p>}
+    <div style={{ ...getBackgroundStyle(), color: fontColor, fontFamily: modernFontStack }} className="min-h-screen">
+      <div className="max-w-lg mx-auto px-4 py-10">
+        {/* Profile Header with Avatar */}
+        <div className="flex flex-col items-center mb-8">
+          {/* Avatar (if provided) */}
+          {place.avatarUrl && (
+            <div className="mb-5 relative animate-fade-in">
+              <div
+                className="absolute inset-0 rounded-full blur-lg opacity-50"
+                style={{
+                  background: place.color?.includes('gradient') ? place.color : `linear-gradient(135deg, ${place.color || '#3B82F6'} 0%, ${place.color || '#8B5CF6'} 100%)`
+                }}
+              ></div>
+              <img
+                src={place.avatarUrl}
+                alt={place.name}
+                className="relative w-28 h-28 rounded-full object-cover border-4 border-white shadow-2xl"
+                style={{
+                  borderColor: place.buttonEffect === 'glass' ? 'rgba(255, 255, 255, 0.3)' : 'white'
+                }}
+              />
+              {place.verified && (
+                <div
+                  className="absolute bottom-1 right-1 w-8 h-8 rounded-full flex items-center justify-center border-3 border-white shadow-lg"
+                  style={{ background: place.color || '#3B82F6' }}
+                  title="Verified"
+                >
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Name with fluid typography */}
+          <h1
+            className="text-4xl font-bold text-center mb-3 animate-fade-in"
+            style={{
+              color: fontColor,
+              fontSize: 'clamp(2rem, 5vw, 2.5rem)',
+              letterSpacing: '-0.02em'
+            }}
+          >
+            {place.name}
+          </h1>
+
+          {/* Bio */}
+          {place.bio && (
+            <p
+              className="text-center max-w-md mb-5 leading-relaxed animate-fade-in"
+              style={{
+                color: fontColor,
+                opacity: 0.9,
+                fontSize: 'clamp(0.95rem, 2vw, 1.05rem)'
+              }}
+            >
+              {place.bio}
+            </p>
+          )}
+
+          {/* Share Buttons */}
+          <div style={{ color: fontColor }}>
+            <ShareButton profileId={profileId} placeName={place.name} />
+          </div>
         </div>
 
         {/* Sections - Only render what exists */}
-        {sections.map((section, index) => 
-          index === sections.length - 1 ? section : section
-        )}
+        <div className="space-y-4 animate-fade-in">
+          {sections.map((section, index) =>
+            index === sections.length - 1 ? section : section
+          )}
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="py-6 text-center text-sm border-t" style={{ backgroundColor, color: fontColor, borderColor: 'rgba(0,0,0,0.1)' }}>
+      {/* Enhanced Footer */}
+      <div className="py-8 text-center text-sm mt-12" style={{ color: fontColor, opacity: 0.6 }}>
         <p>
-          <a href="/" className="hover:underline transition-colors" style={{ color: place.color || "#3B82F6" }}>
-            Powered by Booking Bridge Link
+          <a
+            href="/"
+            className="hover:underline transition-all duration-300 inline-flex items-center gap-1 hover:gap-2"
+            style={{ color: fontColor }}
+          >
+            <span>Powered by</span>
+            <span className="font-semibold" style={{ color: place.color || "#3B82F6" }}>Booking Bridge</span>
           </a>
         </p>
       </div>

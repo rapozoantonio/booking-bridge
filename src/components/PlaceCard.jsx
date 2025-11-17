@@ -18,13 +18,15 @@ const PlaceCard = ({ place }) => {
   const totalActiveLinks = activeBookingLinks + activeSocialLinks;
 
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-indigo-200 transform hover:scale-[1.02]">
+    <div className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-indigo-300 transform hover:scale-[1.02] hover:-translate-y-1 gpu-accelerated">
       {/* Header with gradient */}
-      <div className="relative h-32" style={{
+      <div className="relative h-36 overflow-hidden" style={{
         background: place.color
           ? `linear-gradient(135deg, ${place.color} 0%, ${place.backgroundColor || '#ffffff'} 100%)`
           : 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)'
       }}>
+        {/* Animated gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-shimmer"></div>
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative h-full flex items-center justify-center">
           <div className="text-center">
@@ -102,14 +104,17 @@ const PlaceCard = ({ place }) => {
           <div className="flex gap-3">
             <Link
               to={`/place/edit/${place.id}`}
-              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              className="group/btn flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden"
             >
-              <Edit3 className="w-4 h-4 mr-2" />
-              Edit
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"></span>
+              <span className="relative flex items-center">
+                <Edit3 className="w-4 h-4 mr-2" />
+                Edit
+              </span>
             </Link>
             <Link
               to={`/p/${place.id}`}
-              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-white border-2 border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200"
+              className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-white border-2 border-gray-200 text-gray-700 text-sm font-semibold rounded-2xl hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-300 transform hover:scale-105"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -120,17 +125,23 @@ const PlaceCard = ({ place }) => {
           <div className="flex gap-3">
             <Link
               to={`/analytics/${place.id}`}
-              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              className="group/btn flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold rounded-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden"
             >
-              <BarChart2 className="w-4 h-4 mr-2" />
-              Analytics
+              <span className="absolute inset-0 bg-gradient-to-r from-teal-600 to-green-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"></span>
+              <span className="relative flex items-center">
+                <BarChart2 className="w-4 h-4 mr-2" />
+                Analytics
+              </span>
             </Link>
             <button
               onClick={() => setShowQRModal(true)}
-              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              className="group/btn flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden"
             >
-              <QrCode className="w-4 h-4 mr-2" />
-              QR Code
+              <span className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"></span>
+              <span className="relative flex items-center">
+                <QrCode className="w-4 h-4 mr-2" />
+                QR Code
+              </span>
             </button>
           </div>
         </div>
