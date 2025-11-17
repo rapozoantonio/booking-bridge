@@ -53,6 +53,18 @@ service cloud.firestore {
         // No one can update or delete analytics
         allow update, delete: if false;
       }
+
+      // Email subscribers subcollection
+      match /emailSubscribers/{subscriberId} {
+        // Anyone can create email subscriptions
+        allow create: if true;
+
+        // Only the place owner can read email subscribers
+        allow read: if isSignedIn() && isOwner(get(/databases/$(database)/documents/places/$(placeId)).data.userId);
+
+        // No one can update or delete email subscribers
+        allow update, delete: if false;
+      }
     }
   }
 }

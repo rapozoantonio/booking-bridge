@@ -1,13 +1,40 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import PlaceCard from '../components/PlaceCard';
+import { exportPlaceToJSON, importPlaceFromJSON } from '../utils/importExport';
 
 const Dashboard = () => {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedPlaceForExport, setSelectedPlaceForExport] = useState(null);
+  const importFileRef = useRef(null);
+
+  const handleExport = (place) => {
+    exportPlaceToJSON(place, place.name);
+    setSelectedPlaceForExport(null);
+  };
+
+  const handleImportClick = () => {
+    importFileRef.current?.click();
+  };
+
+  const handleImportFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const importedData = await importPlaceFromJSON(file);
+      // For now, just alert the user. In a full implementation, this would create a new place
+      alert(`Import successful! Place "${importedData.name}" is ready. Full import functionality coming soon.`);
+      event.target.value = ''; // Reset input
+    } catch (err) {
+      alert(`Import failed: ${err.message}`);
+      event.target.value = ''; // Reset input
+    }
+  };
 
   const fetchPlaces = useCallback(async () => {
     setLoading(true);
@@ -165,6 +192,28 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Minimal Import Button */}
+          {places.length > 0 && !loading && (
+            <div className="mt-4">
+              <input
+                ref={importFileRef}
+                type="file"
+                accept=".json"
+                onChange={handleImportFile}
+                className="hidden"
+              />
+              <button
+                onClick={handleImportClick}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Import Place
+              </button>
             </div>
           )}
         </div>

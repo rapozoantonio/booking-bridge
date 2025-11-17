@@ -408,6 +408,14 @@ export const PlaceEditorProvider = ({ children }) => {
     }));
   }, []);
 
+  // Apply theme
+  const applyThemeToForm = useCallback((themeSettings) => {
+    setFormData((prev) => ({
+      ...prev,
+      ...themeSettings
+    }));
+  }, []);
+
   // Handle form submission without image uploads
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -506,6 +514,7 @@ export const PlaceEditorProvider = ({ children }) => {
     updateLinkSchedule,
     updateSectionLabel,
     toggleSectionVisibility,
+    applyThemeToForm,
   }), [
     placeId,
     isEditMode,
@@ -530,7 +539,8 @@ export const PlaceEditorProvider = ({ children }) => {
     updateLinkDisplayName,
     updateLinkSchedule,
     updateSectionLabel,
-    toggleSectionVisibility
+    toggleSectionVisibility,
+    applyThemeToForm
   ]);
 
   return <PlaceEditorContext.Provider value={contextValue}>{children}</PlaceEditorContext.Provider>;

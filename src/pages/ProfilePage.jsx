@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { doc, getDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { trackLinkClick as trackLinkClickAnalytics, trackProfileView } from "../utils/analytics";
+import EmailCollectionWidget from "../components/EmailCollectionWidget";
 
 // Reusable Button Component
 const LinkButton = ({ onClick, style, icon, iconType, showIcon, children, ariaLabel }) => {
@@ -396,14 +397,27 @@ const ProfilePage = () => {
 
   if (showDescriptionSection) {
     sections.push(
-      <div key="description" className="p-5 shadow-sm" style={{ 
+      <div key="description" className="p-5 shadow-sm" style={{
         backgroundColor: place.color || "#3B82F6",
-        borderRadius: place.linkStyle === 'pill' ? '9999px' : 
-                     place.linkStyle === 'square' ? '0' : 
+        borderRadius: place.linkStyle === 'pill' ? '9999px' :
+                     place.linkStyle === 'square' ? '0' :
                      '0.375rem',
       }}>
         <h2 className="text-lg font-semibold mb-2" style={{ color: place.buttonTextColor || "#FFFFFF" }}>About</h2>
         <p className="whitespace-pre-line" style={{ color: place.buttonTextColor || "#FFFFFF" }}>{place.description}</p>
+      </div>
+    );
+  }
+
+  // Email collection widget (if enabled)
+  if (place.emailCollectionEnabled) {
+    sections.push(
+      <div key="email-collection" className="mb-3">
+        <EmailCollectionWidget
+          placeId={profileId}
+          placeName={place.name}
+          widgetSettings={place.emailWidgetSettings}
+        />
       </div>
     );
   }
