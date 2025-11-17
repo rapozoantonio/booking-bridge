@@ -2,15 +2,16 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../firebase";
+import DOMPurify from 'dompurify';
 // Still import these for UI rendering, but we won't store them in Firestore
-import { 
-  Luggage, 
-  MapPin, 
-  Compass, 
-  UtensilsCrossed, 
-  Car, 
-  Headphones, 
-  HelpCircle 
+import {
+  Luggage,
+  MapPin,
+  Compass,
+  UtensilsCrossed,
+  Car,
+  Headphones,
+  HelpCircle
 } from 'lucide-react'
 
 // Platform templates with icons - kept outside component to prevent recreation on renders
@@ -48,6 +49,29 @@ export const SUPPORT_EXPERIENCE_PLATFORMS = [
   { name: "Customer Support", icon: "https://cdn-icons-png.flaticon.com/512/2706/2706962.png" }, // Headset
   { name: "FAQ", icon: "https://cdn-icons-png.flaticon.com/512/189/189665.png" }, // Question mark
 ];
+
+// Utility functions for validation and sanitization
+const isValidURL = (string) => {
+  try {
+    const url = new URL(string);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+};
+
+const sanitizeInput = (input) => {
+  if (typeof input !== 'string') return input;
+  // Remove any HTML tags and scripts
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: []
+  }).trim();
+};
+
+const isValidHexColor = (color) => {
+  return /^#([0-9A-F]{3}){1,2}$/i.test(color);
+};
 
 // Default form data - kept outside component to avoid recreation on each render
 const DEFAULT_FORM_DATA = {
@@ -178,7 +202,13 @@ export const PlaceEditorProvider = ({ children }) => {
       return;
     }
 
-    const platformName = templatePlatform || newLinkPlatform;
+    // Validate URL
+    if (!isValidURL(newLinkUrl)) {
+      setError("Please provide a valid URL (must start with http:// or https://)");
+      return;
+    }
+
+    const platformName = sanitizeInput(templatePlatform || newLinkPlatform);
 
     let iconSource;
     let linkArray;
@@ -370,9 +400,34 @@ export const PlaceEditorProvider = ({ children }) => {
         throw new Error("User not authenticated. Please log in again.");
       }
 
-      // Prepare place data without any image fields
+      // Validate and sanitize colors
+      if (formData.color && !isValidHexColor(formData.color)) {
+        throw new Error("Invalid button color format. Please use hex color (e.g., #3B82F6)");
+      }
+      if (formData.backgroundColor && !isValidHexColor(formData.backgroundColor)) {
+        throw new Error("Invalid background color format. Please use hex color (e.g., #FFFFFF)");
+      }
+      if (formData.fontColor && !isValidHexColor(formData.fontColor)) {
+        throw new Error("Invalid font color format. Please use hex color (e.g., #000000)");
+      }
+      if (formData.buttonTextColor && !isValidHexColor(formData.buttonTextColor)) {
+        throw new Error("Invalid button text color format. Please use hex color (e.g., #FFFFFF)");
+      }
+
+      // Validate location map URL if provided
+      if (formData.locationMapUrl && !isValidURL(formData.locationMapUrl)) {
+        throw new Error("Invalid location map URL. Please provide a valid URL.");
+      }
+
+      // Prepare place data with sanitized inputs
       const placeData = {
         ...formData,
+        // Sanitize text inputs
+        name: sanitizeInput(formData.name),
+        description: sanitizeInput(formData.description),
+        location: sanitizeInput(formData.location),
+        bio: sanitizeInput(formData.bio),
+        customDomain: sanitizeInput(formData.customDomain),
         userId: user.uid,
         updatedAt: serverTimestamp(),
       };
