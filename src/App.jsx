@@ -17,6 +17,7 @@ const Register = lazy(() => import('./pages/Register'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const PlaceEditor = lazy(() => import('./pages/PlaceEditor'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 
 // Loading component for suspense fallback
 const LoadingFallback = () => (
@@ -61,7 +62,7 @@ function App() {
         
         {/* All other routes with Navbar and Footer */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={currentUser ? <Navigate to="/dashboard" /> : <Login />} />
+          <Route path="/" element={currentUser ? <Navigate to="/dashboard" /> : <LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route 
