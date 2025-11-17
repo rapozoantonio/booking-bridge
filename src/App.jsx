@@ -5,6 +5,9 @@ import './App.css';
 // Custom Hooks
 import useAuth from './hooks/useAuth';
 
+// Contexts
+import { ToastProvider } from './contexts/ToastContext';
+
 // Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -17,6 +20,7 @@ const Register = lazy(() => import('./pages/Register'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const PlaceEditor = lazy(() => import('./pages/PlaceEditor'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 
 // Loading component for suspense fallback
 const LoadingFallback = () => (
@@ -50,48 +54,50 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        {/* ProfilePage route without Navbar and Footer */}
-        <Route path="/p/:profileId" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <ProfilePage />
-          </Suspense>
-        } />
-        
-        {/* All other routes with Navbar and Footer */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={currentUser ? <Navigate to="/dashboard" /> : <Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute user={currentUser}>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/place/new" 
-            element={
-              <ProtectedRoute user={currentUser}>
-                <PlaceEditor />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/place/edit/:placeId" 
-            element={
-              <ProtectedRoute user={currentUser}>
-                <PlaceEditor />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <Routes>
+          {/* ProfilePage route without Navbar and Footer */}
+          <Route path="/p/:profileId" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ProfilePage />
+            </Suspense>
+          } />
+
+          {/* All other routes with Navbar and Footer */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={currentUser ? <Navigate to="/dashboard" /> : <LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute user={currentUser}>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/place/new"
+              element={
+                <ProtectedRoute user={currentUser}>
+                  <PlaceEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/place/edit/:placeId"
+              element={
+                <ProtectedRoute user={currentUser}>
+                  <PlaceEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 
