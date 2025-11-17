@@ -12,15 +12,24 @@ export default defineConfig({
     }),
   ],
   server: {
-    port: 3000
+    port: 5173,
+    open: true
   },
   build: {
     outDir: 'build',
+    sourcemap: false,
     rollupOptions: {
       input: {
         main: 'index.html',
       },
+      output: {
+        manualChunks: {
+          'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/analytics'],
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        }
+      }
     },
+    chunkSizeWarningLimit: 600,
   },
   resolve: {
     extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json'],

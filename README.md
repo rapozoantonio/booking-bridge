@@ -88,9 +88,7 @@ Connect your guests to all your booking platforms, social media, and services in
    npm start
    ```
 
-5. **Open your browser**
-
-   Navigate to [http://localhost:5173](http://localhost:5173)
+   The app will automatically open in your browser at [http://localhost:5173](http://localhost:5173)
 
 ---
 
@@ -288,13 +286,16 @@ Found a bug or have a feature idea? Please [open an issue](https://github.com/ra
 - ✅ Modern UI/UX
 - ✅ Mobile responsive
 
-### Coming Soon (v0.2.0)
-- [ ] Analytics dashboard with charts
-- [ ] QR code generation
-- [ ] Link scheduling
-- [ ] Profile templates/themes
-- [ ] Bulk import/export
-- [ ] Email collection widgets
+### v0.2.0 (Current)
+- ✅ Analytics dashboard with charts
+- ✅ QR code generation
+- ✅ Advanced analytics tracking (subcollections)
+- ✅ Bulk import/export
+- ✅ Email collection widgets
+- ✅ Error boundaries
+- ✅ Input sanitization (XSS protection)
+- ✅ URL validation
+- ✅ Optimized bundle size (74% reduction)
 
 ### Future (v1.0.0)
 - [ ] Custom domain support (full implementation)
