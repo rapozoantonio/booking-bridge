@@ -1,8 +1,11 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, ExternalLink, Edit3, Link as LinkIcon } from 'lucide-react';
+import { MapPin, ExternalLink, Edit3, Link as LinkIcon, QrCode } from 'lucide-react';
+import QRCodeModal from './QRCodeModal';
 
 const PlaceCard = ({ place }) => {
+  const [showQRModal, setShowQRModal] = useState(false);
+
   // Count active links - ensure we're always filtering arrays
   const activeBookingLinks = Array.isArray(place.bookingLinks)
     ? place.bookingLinks.filter(link => link.isActive)?.length
@@ -95,25 +98,42 @@ const PlaceCard = ({ place }) => {
         )}
 
         {/* Actions */}
-        <div className="flex gap-3 mt-5">
-          <Link
-            to={`/place/edit/${place.id}`}
-            className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+        <div className="space-y-3 mt-5">
+          <div className="flex gap-3">
+            <Link
+              to={`/place/edit/${place.id}`}
+              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              <Edit3 className="w-4 h-4 mr-2" />
+              Edit
+            </Link>
+            <Link
+              to={`/p/${place.id}`}
+              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-white border-2 border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              View
+            </Link>
+          </div>
+          <button
+            onClick={() => setShowQRModal(true)}
+            className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
           >
-            <Edit3 className="w-4 h-4 mr-2" />
-            Edit
-          </Link>
-          <Link
-            to={`/p/${place.id}`}
-            className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-white border-2 border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            View
-          </Link>
+            <QrCode className="w-4 h-4 mr-2" />
+            Get QR Code
+          </button>
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        placeId={place.id}
+        placeName={place.name}
+      />
     </div>
   );
 };
