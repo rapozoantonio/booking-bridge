@@ -41,6 +41,30 @@ service cloud.firestore {
 
       // Only the owner can delete their place
       allow delete: if isSignedIn() && isOwner(resource.data.userId);
+
+      // Analytics subcollection
+      match /analytics/{analyticsId} {
+        // Anyone can create analytics events (for tracking public profile views/clicks)
+        allow create: if true;
+
+        // Only the place owner can read analytics
+        allow read: if isSignedIn() && isOwner(get(/databases/$(database)/documents/places/$(placeId)).data.userId);
+
+        // No one can update or delete analytics
+        allow update, delete: if false;
+      }
+
+      // Email subscribers subcollection
+      match /emailSubscribers/{subscriberId} {
+        // Anyone can create email subscriptions
+        allow create: if true;
+
+        // Only the place owner can read email subscribers
+        allow read: if isSignedIn() && isOwner(get(/databases/$(database)/documents/places/$(placeId)).data.userId);
+
+        // No one can update or delete email subscribers
+        allow update, delete: if false;
+      }
     }
   }
 }

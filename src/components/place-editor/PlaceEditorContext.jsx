@@ -240,6 +240,8 @@ export const PlaceEditorProvider = ({ children }) => {
           isActive: true,
           icon: iconSource,
           showIcon: prev.showIcons !== false, // Use the global setting as default for this link
+          startDate: null, // Optional start date for scheduling
+          endDate: null, // Optional end date for scheduling
         },
       ],
     }));
@@ -361,6 +363,29 @@ export const PlaceEditorProvider = ({ children }) => {
     });
   }, []);
 
+  // Update scheduling for a link
+  const updateLinkSchedule = useCallback((type, index, startDate, endDate) => {
+    setFormData((prev) => {
+      if (type === "booking") {
+        const newLinks = [...prev.bookingLinks];
+        newLinks[index].startDate = startDate;
+        newLinks[index].endDate = endDate;
+        return { ...prev, bookingLinks: newLinks };
+      } else if (type === "social") {
+        const newLinks = [...prev.socialLinks];
+        newLinks[index].startDate = startDate;
+        newLinks[index].endDate = endDate;
+        return { ...prev, socialLinks: newLinks };
+      } else if (type === "support") {
+        const newLinks = [...prev.supportLinks];
+        newLinks[index].startDate = startDate;
+        newLinks[index].endDate = endDate;
+        return { ...prev, supportLinks: newLinks };
+      }
+      return prev;
+    });
+  }, []);
+
   // Update section label
   const updateSectionLabel = useCallback((sectionType, label) => {
     setFormData((prev) => ({
@@ -380,6 +405,14 @@ export const PlaceEditorProvider = ({ children }) => {
         ...prev.sectionVisibility,
         [sectionType]: !prev.sectionVisibility[sectionType]
       }
+    }));
+  }, []);
+
+  // Apply theme
+  const applyThemeToForm = useCallback((themeSettings) => {
+    setFormData((prev) => ({
+      ...prev,
+      ...themeSettings
     }));
   }, []);
 
@@ -478,8 +511,10 @@ export const PlaceEditorProvider = ({ children }) => {
     toggleGlobalIconVisibility,
     toggleLinkIconVisibility,
     updateLinkDisplayName,
+    updateLinkSchedule,
     updateSectionLabel,
     toggleSectionVisibility,
+    applyThemeToForm,
   }), [
     placeId,
     isEditMode,
@@ -502,8 +537,10 @@ export const PlaceEditorProvider = ({ children }) => {
     toggleGlobalIconVisibility,
     toggleLinkIconVisibility,
     updateLinkDisplayName,
+    updateLinkSchedule,
     updateSectionLabel,
-    toggleSectionVisibility
+    toggleSectionVisibility,
+    applyThemeToForm
   ]);
 
   return <PlaceEditorContext.Provider value={contextValue}>{children}</PlaceEditorContext.Provider>;

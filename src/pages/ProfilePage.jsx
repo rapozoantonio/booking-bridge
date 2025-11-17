@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { doc, getDoc, updateDoc, arrayUnion, increment, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
+import { trackLinkClick as trackLinkClickAnalytics, trackProfileView } from "../utils/analytics";
+import EmailCollectionWidget from "../components/EmailCollectionWidget";
 
 // Reusable Button Component
 const LinkButton = ({ onClick, style, icon, iconType, showIcon, children, ariaLabel }) => {
@@ -97,6 +99,9 @@ const ProfilePage = () => {
               id: placeSnap.id,
               ...placeData,
             });
+
+            // Track profile view
+            trackProfileView(profileId, navigator.userAgent, document.referrer);
           }
         } else {
           setError("Place not found");
@@ -112,7 +117,7 @@ const ProfilePage = () => {
     fetchPlace();
   }, [profileId]);
 
-  const trackLinkClick = async (linkType, linkIndex) => {
+  const trackLinkClick = async (linkType, linkIndex, linkPlatform, linkUrl) => {
     try {
       const placeRef = doc(db, "places", profileId);
 
@@ -131,25 +136,19 @@ const ProfilePage = () => {
         updates[`supportLinks.${linkIndex}.lastClicked`] = serverTimestamp();
       }
 
-      // Add to analytics array (limited to last 100 events to prevent document size issues)
-      // Note: This still appends, but we should periodically clean old events
-      // In production, consider moving to a subcollection for scalability
-      updates.analytics = arrayUnion({
-        linkType,
-        linkIndex,
-        timestamp: serverTimestamp(),
-      });
-
-      // Single atomic update instead of two separate calls
+      // Single atomic update
       await updateDoc(placeRef, updates);
+
+      // Track in analytics subcollection (scalable solution)
+      await trackLinkClickAnalytics(profileId, linkType, linkIndex, linkPlatform, linkUrl);
     } catch (error) {
       console.error("Error tracking link click:", error);
       // Silent fail - don't block user experience for analytics issues
     }
   };
 
-  const handleLinkClick = (linkType, index, url) => {
-    trackLinkClick(linkType, index);
+  const handleLinkClick = (linkType, index, url, platform) => {
+    trackLinkClick(linkType, index, platform, url);
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -264,10 +263,24 @@ const ProfilePage = () => {
   const fontColor = place.fontColor || "#000000";
   const systemFontStack = `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`;
 
-  // Filter active links by type
-  const activeBookingLinks = place.bookingLinks?.filter(link => link.isActive) || [];
-  const activeSupportLinks = place.supportLinks?.filter(link => link.isActive) || [];
-  const activeSocialLinks = place.socialLinks?.filter(link => link.isActive) || [];
+  // Helper function to check if a link is currently scheduled
+  const isLinkScheduled = (link) => {
+    if (!link.startDate && !link.endDate) return true; // No scheduling, always show
+
+    const now = new Date();
+    const startDate = link.startDate ? new Date(link.startDate) : null;
+    const endDate = link.endDate ? new Date(link.endDate) : null;
+
+    if (startDate && now < startDate) return false; // Not started yet
+    if (endDate && now > endDate) return false; // Already ended
+
+    return true; // Within schedule
+  };
+
+  // Filter active links by type and schedule
+  const activeBookingLinks = place.bookingLinks?.filter(link => link.isActive && isLinkScheduled(link)) || [];
+  const activeSupportLinks = place.supportLinks?.filter(link => link.isActive && isLinkScheduled(link)) || [];
+  const activeSocialLinks = place.socialLinks?.filter(link => link.isActive && isLinkScheduled(link)) || [];
 
   // Determine section visibility
   const showBookingSection = activeBookingLinks.length > 0;
@@ -284,7 +297,7 @@ const ProfilePage = () => {
       <div key="location" className="mb-3">
         {place.locationMapUrl ? (
           <LinkButton
-            onClick={() => handleLinkClick("location", 0, place.locationMapUrl)}
+            onClick={() => handleLinkClick("location", 0, place.locationMapUrl, "Location")}
             style={getLinkStyle("location")}
             icon={null}
             iconType="location"
@@ -317,7 +330,7 @@ const ProfilePage = () => {
           {activeBookingLinks.map((link, index) => (
             <LinkButton
               key={`booking-${index}`}
-              onClick={() => handleLinkClick("booking", index, link.url)}
+              onClick={() => handleLinkClick("booking", index, link.url, link.displayName || link.platform)}
               style={getLinkStyle("booking")}
               icon={link.icon}
               showIcon={link.showIcon}
@@ -343,7 +356,7 @@ const ProfilePage = () => {
           {activeSupportLinks.map((link, index) => (
             <LinkButton
               key={`support-${index}`}
-              onClick={() => handleLinkClick("support", index, link.url)}
+              onClick={() => handleLinkClick("support", index, link.url, link.displayName || link.platform)}
               style={getLinkStyle("support")}
               icon={link.icon}
               showIcon={link.showIcon}
@@ -371,7 +384,7 @@ const ProfilePage = () => {
               key={`social-${index}`}
               link={{
                 ...link,
-                onClick: () => handleLinkClick("social", index, link.url)
+                onClick: () => handleLinkClick("social", index, link.url, link.displayName || link.platform)
               }}
               color={place.color || "#3B82F6"}
               ariaLabel={`Visit ${link.displayName || link.platform}`}
@@ -384,14 +397,27 @@ const ProfilePage = () => {
 
   if (showDescriptionSection) {
     sections.push(
-      <div key="description" className="p-5 shadow-sm" style={{ 
+      <div key="description" className="p-5 shadow-sm" style={{
         backgroundColor: place.color || "#3B82F6",
-        borderRadius: place.linkStyle === 'pill' ? '9999px' : 
-                     place.linkStyle === 'square' ? '0' : 
+        borderRadius: place.linkStyle === 'pill' ? '9999px' :
+                     place.linkStyle === 'square' ? '0' :
                      '0.375rem',
       }}>
         <h2 className="text-lg font-semibold mb-2" style={{ color: place.buttonTextColor || "#FFFFFF" }}>About</h2>
         <p className="whitespace-pre-line" style={{ color: place.buttonTextColor || "#FFFFFF" }}>{place.description}</p>
+      </div>
+    );
+  }
+
+  // Email collection widget (if enabled)
+  if (place.emailCollectionEnabled) {
+    sections.push(
+      <div key="email-collection" className="mb-3">
+        <EmailCollectionWidget
+          placeId={profileId}
+          placeName={place.name}
+          widgetSettings={place.emailWidgetSettings}
+        />
       </div>
     );
   }

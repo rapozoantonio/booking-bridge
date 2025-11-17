@@ -19,6 +19,7 @@ const LinksManagementSection = () => {
     toggleGlobalIconVisibility,
     toggleLinkIconVisibility,
     updateLinkDisplayName,
+    updateLinkSchedule,
     updateSectionLabel,
     toggleSectionVisibility
   } = usePlaceEditor();
@@ -29,6 +30,9 @@ const LinksManagementSection = () => {
   const [showSectionSettings, setShowSectionSettings] = useState(false);
   const [editingSectionLabel, setEditingSectionLabel] = useState(null); // sectionType
   const [sectionLabelValue, setSectionLabelValue] = useState("");
+  const [editingSchedule, setEditingSchedule] = useState(null); // { type, index }
+  const [scheduleStartDate, setScheduleStartDate] = useState("");
+  const [scheduleEndDate, setScheduleEndDate] = useState("");
 
   // Configuration objects for labels and suggestions
   const linkConfig = {
@@ -138,6 +142,36 @@ const LinksManagementSection = () => {
     if (editingSectionLabel) {
       updateSectionLabel(editingSectionLabel, sectionLabelValue);
       setEditingSectionLabel(null);
+    }
+  };
+
+  // Start editing schedule for a link
+  const startEditingSchedule = (type, index, currentStartDate, currentEndDate) => {
+    setEditingSchedule({ type, index });
+    setScheduleStartDate(currentStartDate || "");
+    setScheduleEndDate(currentEndDate || "");
+  };
+
+  // Save the edited schedule
+  const saveSchedule = () => {
+    if (editingSchedule) {
+      updateLinkSchedule(
+        editingSchedule.type,
+        editingSchedule.index,
+        scheduleStartDate || null,
+        scheduleEndDate || null
+      );
+      setEditingSchedule(null);
+    }
+  };
+
+  // Clear schedule
+  const clearSchedule = () => {
+    if (editingSchedule) {
+      updateLinkSchedule(editingSchedule.type, editingSchedule.index, null, null);
+      setEditingSchedule(null);
+      setScheduleStartDate("");
+      setScheduleEndDate("");
     }
   };
 
@@ -268,14 +302,93 @@ const LinksManagementSection = () => {
             </svg>
           </button>
         </div>
-      
+
         {/* Additional instructions */}
         <div className="mt-2 text-xs text-gray-500 italic">
-          Click on the name to edit how it appears on your page • 
-          {link.platform !== (link.displayName || link.platform) && 
+          Click on the name to edit how it appears on your page •
+          {link.platform !== (link.displayName || link.platform) &&
             <span className="text-blue-600 font-medium"> Custom display name set</span>
           }
         </div>
+      </div>
+
+      {/* Scheduling Section */}
+      <div className="mt-3 pt-3 border-t border-gray-100">
+        {editingSchedule && editingSchedule.type === linkType && editingSchedule.index === index ? (
+          <div className="space-y-3 bg-blue-50 p-3 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm font-medium text-blue-900">Schedule Link Visibility</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Start Date (Optional)</label>
+                <input
+                  type="date"
+                  value={scheduleStartDate}
+                  onChange={(e) => setScheduleStartDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">Link shows after this date</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">End Date (Optional)</label>
+                <input
+                  type="date"
+                  value={scheduleEndDate}
+                  onChange={(e) => setScheduleEndDate(e.target.value)}
+                  min={scheduleStartDate || undefined}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">Link hides after this date</p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={saveSchedule}
+                className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Save Schedule
+              </button>
+              <button
+                onClick={clearSchedule}
+                className="px-3 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => setEditingSchedule(null)}
+                className="px-3 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => startEditingSchedule(linkType, index, link.startDate, link.endDate)}
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {link.startDate || link.endDate ? (
+              <span className="font-medium text-blue-600">
+                Scheduled: {link.startDate && `From ${new Date(link.startDate).toLocaleDateString()}`}
+                {link.startDate && link.endDate && " • "}
+                {link.endDate && `Until ${new Date(link.endDate).toLocaleDateString()}`}
+                <span className="ml-2 text-xs text-gray-500 group-hover:text-blue-500">(click to edit)</span>
+              </span>
+            ) : (
+              <span>Add schedule (optional)</span>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );
