@@ -20,6 +20,7 @@ const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const PlaceEditor = lazy(() => import('./pages/PlaceEditor'));
+const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 
@@ -99,6 +100,16 @@ function App() {
                   <ProtectedRoute user={currentUser}>
                     <ErrorBoundary>
                       <PlaceEditor />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analytics/:placeId"
+                element={
+                  <ProtectedRoute user={currentUser}>
+                    <ErrorBoundary>
+                      <AnalyticsDashboard />
                     </ErrorBoundary>
                   </ProtectedRoute>
                 }

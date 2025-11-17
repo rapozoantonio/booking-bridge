@@ -1,6 +1,6 @@
 import React, { memo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, ExternalLink, Edit3, Link as LinkIcon, QrCode } from 'lucide-react';
+import { MapPin, ExternalLink, Edit3, Link as LinkIcon, QrCode, BarChart2 } from 'lucide-react';
 import QRCodeModal from './QRCodeModal';
 
 const PlaceCard = ({ place }) => {
@@ -117,13 +117,22 @@ const PlaceCard = ({ place }) => {
               View
             </Link>
           </div>
-          <button
-            onClick={() => setShowQRModal(true)}
-            className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
-          >
-            <QrCode className="w-4 h-4 mr-2" />
-            Get QR Code
-          </button>
+          <div className="flex gap-3">
+            <Link
+              to={`/analytics/${place.id}`}
+              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              <BarChart2 className="w-4 h-4 mr-2" />
+              Analytics
+            </Link>
+            <button
+              onClick={() => setShowQRModal(true)}
+              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              <QrCode className="w-4 h-4 mr-2" />
+              QR Code
+            </button>
+          </div>
         </div>
       </div>
 

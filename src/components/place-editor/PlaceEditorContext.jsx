@@ -240,6 +240,8 @@ export const PlaceEditorProvider = ({ children }) => {
           isActive: true,
           icon: iconSource,
           showIcon: prev.showIcons !== false, // Use the global setting as default for this link
+          startDate: null, // Optional start date for scheduling
+          endDate: null, // Optional end date for scheduling
         },
       ],
     }));
@@ -355,6 +357,29 @@ export const PlaceEditorProvider = ({ children }) => {
       } else if (type === "support") {
         const newLinks = [...prev.supportLinks];
         newLinks[index].displayName = displayName;
+        return { ...prev, supportLinks: newLinks };
+      }
+      return prev;
+    });
+  }, []);
+
+  // Update scheduling for a link
+  const updateLinkSchedule = useCallback((type, index, startDate, endDate) => {
+    setFormData((prev) => {
+      if (type === "booking") {
+        const newLinks = [...prev.bookingLinks];
+        newLinks[index].startDate = startDate;
+        newLinks[index].endDate = endDate;
+        return { ...prev, bookingLinks: newLinks };
+      } else if (type === "social") {
+        const newLinks = [...prev.socialLinks];
+        newLinks[index].startDate = startDate;
+        newLinks[index].endDate = endDate;
+        return { ...prev, socialLinks: newLinks };
+      } else if (type === "support") {
+        const newLinks = [...prev.supportLinks];
+        newLinks[index].startDate = startDate;
+        newLinks[index].endDate = endDate;
         return { ...prev, supportLinks: newLinks };
       }
       return prev;
@@ -478,6 +503,7 @@ export const PlaceEditorProvider = ({ children }) => {
     toggleGlobalIconVisibility,
     toggleLinkIconVisibility,
     updateLinkDisplayName,
+    updateLinkSchedule,
     updateSectionLabel,
     toggleSectionVisibility,
   }), [
@@ -502,6 +528,7 @@ export const PlaceEditorProvider = ({ children }) => {
     toggleGlobalIconVisibility,
     toggleLinkIconVisibility,
     updateLinkDisplayName,
+    updateLinkSchedule,
     updateSectionLabel,
     toggleSectionVisibility
   ]);

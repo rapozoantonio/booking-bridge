@@ -1,9 +1,13 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { X, Download } from 'lucide-react';
+import { X, Download, Palette, Maximize2 } from 'lucide-react';
 
 const QRCodeModal = ({ isOpen, onClose, placeId, placeName }) => {
   const qrRef = useRef(null);
+  const [qrColor, setQrColor] = useState('#000000');
+  const [qrBgColor, setQrBgColor] = useState('#FFFFFF');
+  const [qrSize, setQrSize] = useState(200);
+  const [showCustomization, setShowCustomization] = useState(false);
 
   if (!isOpen) return null;
 
@@ -16,26 +20,28 @@ const QRCodeModal = ({ isOpen, onClose, placeId, placeName }) => {
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
-    canvas.width = 1000;
-    canvas.height = 1200;
+    const qrSizeScaled = qrSize * 4; // Scale for high-quality download
+    const padding = 100;
+    canvas.width = qrSizeScaled + (padding * 2);
+    canvas.height = qrSizeScaled + (padding * 2) + 200;
 
     img.onload = () => {
-      // White background
-      ctx.fillStyle = 'white';
+      // Background color
+      ctx.fillStyle = qrBgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw QR code
-      ctx.drawImage(img, 100, 100, 800, 800);
+      ctx.drawImage(img, padding, padding, qrSizeScaled, qrSizeScaled);
 
       // Add text below
-      ctx.fillStyle = 'black';
+      ctx.fillStyle = qrColor;
       ctx.font = 'bold 48px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(placeName, canvas.width / 2, 1000);
+      ctx.fillText(placeName, canvas.width / 2, qrSizeScaled + padding + 80);
 
       ctx.font = '32px Arial';
       ctx.fillStyle = '#666';
-      ctx.fillText('Scan to view our link hub', canvas.width / 2, 1100);
+      ctx.fillText('Scan to view our link hub', canvas.width / 2, qrSizeScaled + padding + 140);
 
       // Download
       const url = canvas.toDataURL('image/png');
@@ -46,6 +52,18 @@ const QRCodeModal = ({ isOpen, onClose, placeId, placeName }) => {
     };
 
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+  };
+
+  const downloadSVG = () => {
+    const svg = qrRef.current.querySelector('svg');
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const blob = new Blob([svgData], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `${placeName.replace(/\s+/g, '-')}-QR-Code.svg`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const copyLink = async () => {
@@ -76,14 +94,103 @@ const QRCodeModal = ({ isOpen, onClose, placeId, placeName }) => {
         </div>
 
         {/* QR Code */}
-        <div ref={qrRef} className="flex justify-center p-8 bg-white rounded-xl border-2 border-gray-200 mb-6">
+        <div ref={qrRef} className="flex justify-center p-8 rounded-xl border-2 border-gray-200 mb-6" style={{ backgroundColor: qrBgColor }}>
           <QRCodeSVG
             value={publicUrl}
-            size={200}
+            size={qrSize}
             level="H"
             includeMargin={true}
+            fgColor={qrColor}
+            bgColor={qrBgColor}
           />
         </div>
+
+        {/* Customization Toggle */}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowCustomization(!showCustomization)}
+            className="w-full flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-200"
+          >
+            <Palette className="w-4 h-4 mr-2" />
+            {showCustomization ? 'Hide' : 'Show'} Customization Options
+          </button>
+        </div>
+
+        {/* Customization Panel */}
+        {showCustomization && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">QR Code Color</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={qrColor}
+                  onChange={(e) => setQrColor(e.target.value)}
+                  className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={qrColor}
+                  onChange={(e) => setQrColor(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={qrBgColor}
+                  onChange={(e) => setQrBgColor(e.target.value)}
+                  className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={qrBgColor}
+                  onChange={(e) => setQrBgColor(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  placeholder="#FFFFFF"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Maximize2 className="w-4 h-4 inline mr-1" />
+                QR Code Size: {qrSize}px
+              </label>
+              <input
+                type="range"
+                min="150"
+                max="300"
+                step="10"
+                value={qrSize}
+                onChange={(e) => setQrSize(parseInt(e.target.value))}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Small</span>
+                <span>Large</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setQrColor('#000000');
+                  setQrBgColor('#FFFFFF');
+                  setQrSize(200);
+                }}
+                className="flex-1 px-3 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-all duration-200"
+              >
+                Reset to Default
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Place Name */}
         <div className="text-center mb-6">
@@ -93,13 +200,22 @@ const QRCodeModal = ({ isOpen, onClose, placeId, placeName }) => {
 
         {/* Actions */}
         <div className="space-y-3">
-          <button
-            onClick={downloadQR}
-            className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
-          >
-            <Download className="w-5 h-5 mr-2" />
-            Download QR Code
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={downloadQR}
+              className="flex-1 flex items-center justify-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Download PNG
+            </button>
+            <button
+              onClick={downloadSVG}
+              className="flex-1 flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Download SVG
+            </button>
+          </div>
 
           <button
             onClick={copyLink}
