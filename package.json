@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/ios": "^7.4.4",
     "@tailwindcss/cli": "^4.1.4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -28,7 +32,12 @@
     "test": "vitest",
     "lint": "eslint src --ext js,jsx",
     "deploy": "npm run build && firebase deploy --only hosting",
-    "deploy:firestore": "firebase deploy --only firestore:rules,firestore:indexes"
+    "deploy:firestore": "firebase deploy --only firestore:rules,firestore:indexes",
+    "mobile:sync": "npm run build && npx cap sync",
+    "mobile:ios": "npm run mobile:sync && npx cap open ios",
+    "mobile:android": "npm run mobile:sync && npx cap open android",
+    "mobile:build:ios": "npm run build && npx cap sync ios && npx cap copy ios",
+    "mobile:build:android": "npm run build && npx cap sync android && npx cap copy android"
   },
   "eslintConfig": {
     "extends": [
